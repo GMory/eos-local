@@ -28,21 +28,23 @@ function create_eosio_accounts () {
   create_system_account eosio.stake $EOSIO_PUBKEY
   create_system_account eosio.token $EOSIO_PUBKEY
   create_system_account eosio.vpay $EOSIO_PUBKEY
+  create_system_account eosio.rex $EOSIO_PUBKEY
 }
 
 
 function compile_system_contracts () {
   git clone https://github.com/EOSIO/eosio.contracts.git /opt/eosio.contracts
   cd /opt/eosio.contracts/
+  git checkout v1.6.0-rc1
   ./build.sh
 }
 
 function deploy_system_contracts () {
   echo "Deploy eosio.token"
-  $cleos set contract eosio.token /opt/eosio.contracts/build/eosio.token
+  $cleos set contract eosio.token /opt/eosio.contracts/build/contracts/eosio.token
 
   echo "Deploy eosio.msig"
-  $cleos set contract eosio.msig /opt/eosio.contracts/build/eosio.msig
+  $cleos set contract eosio.msig /opt/eosio.contracts/build/contracts/eosio.msig
 
   echo "Create and allocate the SYS currency"  # https://github.com/EOSIO/eos/issues/3996
   $cleos push action eosio.token create '[ "eosio", "10000000000.0000 SYS"]' -p eosio.token@active
@@ -53,13 +55,13 @@ function deploy_system_contracts () {
   $cleos push action eosio.token issue '[ "eosio", "10000000000.0000 EOS", "initial supply" ]' -p eosio@active
 
   echo "Deploy eosio.system"
-  $cleos set contract eosio /opt/eosio.contracts/build/eosio.system
+  $cleos set contract eosio /opt/eosio.contracts/build/contracts/eosio.system
 
   echo "Init system with EOS symbol"
   $cleos push action eosio init '["0", "4,EOS"]' -p eosio@active
 
   echo "Deploy eosio.bios"
-  $cleos set contract eosio /opt/eosio.contracts/build/eosio.bios
+  $cleos set contract eosio /opt/eosio.contracts/build/contracts/eosio.bios
 
   echo "Make eosio.msig privileged"
   $cleos push action eosio setpriv '["eosio.msig", 1]' -p eosio@active
